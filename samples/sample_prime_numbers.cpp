@@ -40,7 +40,7 @@ int main()
   count = 0;
   k = 1;
   for (m = 2; m <= n; m++)
-    if (s.GetBit(m))
+    if (s.GetBit(m))  
     {
       count++;
       cout << setw(3) << m << " ";

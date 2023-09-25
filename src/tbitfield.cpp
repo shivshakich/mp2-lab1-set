@@ -9,11 +9,27 @@
 
 TBitField::TBitField(int len)
 {
+	if (len <= 0)
+		throw out_of_range("constructor TBitField, len <= 0");
 
+	int bitsInTelem = 8 * sizeof(TELEM);
+
+	BitLen = len;
+	MemLen = BitLen / bitsInTelem + ((BitLen % bitsInTelem) > 0);
+	pMem = new TELEM[MemLen];
+
+	for (int i = 0; i < MemLen; ++i)
+		pMem[i] = 0;
 }
 
 TBitField::TBitField(const TBitField &bf) // конструктор копирования
 {
+	BitLen = bf.BitLen;
+	MemLen = bf.MemLen;
+	pMem = new TELEM[MemLen];
+
+	for (int i = 0; i < MemLen; ++i)
+		this->pMem[i] = bf.pMem[i];
 }
 
 TBitField::~TBitField()

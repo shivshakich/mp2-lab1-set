@@ -39,28 +39,29 @@ TBitField::~TBitField()
 
 int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n
 {
+	// return n / BITS_IN_TELEM;
+
 	int a = BITS_IN_TELEM;
 	int bitWidth = 0;
-
 	while (a > 0) {
 		a >> 1;
 		++bitWidth;
 	}
-	// число BITS_IN_TELEM занимает bitWidth битов в памяти
+	// число BITS_IN_TELEM занимает bitWidth бит
 
-	return n >> (bitWidth - 1);			// то же самое, что и int(n / BITS_IN_TELEM)
+	return n >> (bitWidth - 1);	
 }
 
 TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
 {
-	TELEM memElem = pMem[GetMemIndex(n)];
-	int elemIndex = n % BITS_IN_TELEM;
+	// int elemIndex = n % BITS_IN_TELEM;
+	// n == B_I_T * (n / B_I_T) + (n % B_I_T)	==>		n % B_I_T == n - B_I_T * (n / B_I_T)
+	// n / B_I_T == GetMemIndex(n)
 
-	TELEM bitMask = 1;
-	bitMask << elemIndex;
+	int elemIndex = n - BITS_IN_TELEM * GetMemIndex(n);
+	// получили 0 <= elemIndex < BITS_IN_TELEM
 
-	// bitMask = 000...010...000
-	return bitMask;
+	return TELEM(1 << elemIndex);
 }
 
 // доступ к битам битового поля
@@ -72,15 +73,33 @@ int TBitField::GetLength(void) const // получить длину (к-во б�
 
 void TBitField::SetBit(const int n) // установить бит
 {
+	// SetBit присваивает биту n значение 1 ?
+
+	int memIndex = GetMemIndex(n);
+	TELEM bitMask = GetMemMask(n);
+
+	pMem[memIndex] = pMem[memIndex] | bitMask;
 }
 
 void TBitField::ClrBit(const int n) // очистить бит
 {
+	int memIndex = GetMemIndex(n);
+	TELEM bitMask = GetMemMask(n);
+
+	bitMask = ~(bitMask);	// operator~ - побитовая инверсия
+	// bitMask = 0...010...0	==>		bitMask = 1...101...1
+
+	pMem[memIndex] = pMem[memIndex] & bitMask;
 }
 
 int TBitField::GetBit(const int n) const // получить значение бита
 {
-  return 0;
+	int memIndex = GetMemIndex(n);
+	TELEM number = pMem[memIndex];
+
+	TELEM bitMask = GetMemMask(n);
+
+	return int((number & bitMask) > 0);
 }
 
 // битовые операции
@@ -106,7 +125,7 @@ TBitField& TBitField::operator=(const TBitField &bf) // присваивание
 
 int TBitField::operator==(const TBitField &bf) const // сравнение
 {
-  return 0;
+	return 0;
 }
 
 int TBitField::operator!=(const TBitField &bf) const // сравнение

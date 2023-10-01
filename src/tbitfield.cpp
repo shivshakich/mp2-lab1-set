@@ -219,6 +219,23 @@ istream &operator>>(istream &istr, TBitField &bf) // ввод
 
 ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
 {
-	return ostr;
+	char* s = new char[bf.BitLen];
+	for (int i = 0; i < bf.MemLen - 1; ++i) {
+		TELEM number = bf.pMem[i];
 
+		for (int j = 0; j < BITS_IN_TELEM; ++j) {
+			s[i * BITS_IN_TELEM + j] = '0' + (number & 1);
+			number = number >> 1;
+		}
+	}
+
+	TELEM number = bf.pMem[bf.MemLen - 1];
+	for (int i = BITS_IN_TELEM * (bf.MemLen - 1); i < bf.BitLen; ++i) {
+		s[i] = '0' + (number & 1);
+		number = number >> 1;
+	}
+
+	ostr << s;
+
+	return ostr;
 }

@@ -8,8 +8,10 @@
 #include "tbitfield.h"
 
 // TODO:
-// 1) В последнем элементе pMem неиспользуемые ячейки обязаны иметь значение 0 ?
-
+// 1)	В последнем элементе pMem неиспользуемые ячейки обязаны иметь значение 0 ?
+// 2)	метод GetMemIndex должен проверять n на его вхождение в область определения метода ?
+//		Если да, то нужно переписать operator>>,
+//		если нет, то почему GetMemIndex - метод, а дружественная функция, например
 static const int BITS_IN_TELEM = 8 * sizeof(TELEM);
 
 TBitField::TBitField(int len)
@@ -213,8 +215,54 @@ TBitField TBitField::operator~(void) // отрицание
 
 istream &operator>>(istream &istr, TBitField &bf) // ввод
 {
-	return istr;
+	char* s;
+	TELEM number;
+	int digit;
 
+	istr >> s;
+
+	int sLen = strlen(s);
+
+	delete[] bf.pMem;
+	bf.MemLen = 0;
+	bf.BitLen = 0;
+
+	int temp = bf.GetMemIndex(sLen);
+	// хоть метод и применяется к объекту bf, метод не работает с полями объекта
+	bf.pMem = new TELEM[temp];
+	bf.MemLen = temp;
+	bf.BitLen = sLen;
+
+	// обработка исключений
+	for (int i = 0; i < sLen; ++i)
+		if (s[i] != '0' && s[i] != '1')
+			throw "Поток ввода получил неправильную строку символов";
+
+	// заполнение элементов pMem от 0 до (MemLen - 1) - 1
+	for (int i = 0; i < bf.MemLen - 1; ++i) {
+		number = 0;
+
+		for (int j = 0; j < BITS_IN_TELEM; ++j) {
+			digit = s[i * BITS_IN_TELEM + j] - '0';
+
+			number = number + digit;
+			number = number << 1;
+		}
+
+		bf.pMem[i] = number;
+	}
+
+	// предыдущий temp и текущий не имеют между собой ничего общего
+	temp = BITS_IN_TELEM * (bf.MemLen - 1);
+	number = 0;
+	for (int i = 0; i < (bf.BitLen - temp); ++i) {
+		digit = s[temp + i] - '0';
+		number = number + digit;
+		number = number << 1;
+	}
+	bf.pMem[bf.MemLen - 1] = number;
+
+	return istr;
 }
 
 ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод

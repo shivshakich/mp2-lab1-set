@@ -7,6 +7,9 @@
 
 #include "tbitfield.h"
 
+// TODO:
+// 1) В последнем элементе pMem неиспользуемые ячейки обязаны иметь значение 0 ?
+
 static const int BITS_IN_TELEM = 8 * sizeof(TELEM);
 
 TBitField::TBitField(int len)
@@ -44,7 +47,7 @@ int TBitField::GetMemIndex(const int n) const // индекс Мем для би
 	int a = BITS_IN_TELEM;
 	int bitWidth = 0;
 	while (a > 0) {
-		a >> 1;
+		a = a >> 1;
 		++bitWidth;
 	}
 	// число BITS_IN_TELEM занимает bitWidth бит
@@ -125,12 +128,50 @@ TBitField& TBitField::operator=(const TBitField &bf) // присваивание
 
 int TBitField::operator==(const TBitField &bf) const // сравнение
 {
-	return 0;
+	int result = 0;
+
+	if (this == &bf)
+		result = 1;
+	else if (BitLen == bf.BitLen) {
+		result = 1;
+
+		for (int i = 0; i < MemLen - 1; ++i)
+			if (pMem[i] != bf.pMem[i]) {
+				result = 0;
+				break;
+			}
+
+		if (result == 1) {
+			TELEM number1 = pMem[MemLen - 1], number2 = bf.pMem[MemLen - 1];
+			
+			// сравниваем биты от 0 до (BitLen % BITS_IN_TELEM) чисел number1, number2
+			// number1 = aa...aaxxx...x		||	нужно сравнить xxx...x и yyy...y
+			// number2 = bb...bbyyy...y		||	для этого нужно найти их битовую длину, которая одинаковая у них
+
+			// int bitWidth = BitLen % BITS_IN_TELEM
+			// BitLen == B_I_T * (MemLen - 1) + (BitLen % B_I_T)
+			int bitWidth = BitLen - BITS_IN_TELEM * (MemLen - 1);
+			// bitWidth - битовая ширина xx...xx и yy...yy
+
+			number1 = number1 << (BITS_IN_TELEM - bitWidth);
+			number2 = number2 << (BITS_IN_TELEM - bitWidth);
+			// теперь	number1 == x...x0...0
+			//			number2 == y...y0...0
+
+			if (number1 != number2)
+				result = 0;
+		}
+	}
+
+	return result;
 }
 
 int TBitField::operator!=(const TBitField &bf) const // сравнение
 {
-  return 0;
+	int result = this->operator==(bf);
+	result = result == 0 ? 1 : 0;
+
+	return result;
 }
 
 TBitField TBitField::operator|(const TBitField &bf) // операция "или"
@@ -145,7 +186,27 @@ TBitField TBitField::operator&(const TBitField &bf) // операция "и"
 
 TBitField TBitField::operator~(void) // отрицание
 {
-	return*this;
+	for (int i = 0; i < MemLen; ++i)
+		pMem[i] = ~pMem[i];
+
+	// pMem[MemLen - 1] == 00...00xx...xx		- это последний элемент pMem
+	// 00...00xx...xx	==>		11...11(~x)(~x)...(~x)(~x)		после цикла for
+
+	int bitWidth = BitLen - BITS_IN_TELEM * (MemLen - 1);
+	// int bitWidth = BitLen % BITS_IN_TELEM;
+	// bitWidth - количество занятых битов в последнем элементе pMem
+
+	TELEM tempMask = 0;
+	for (int i = 0; i < bitWidth; ++i) {
+		tempMask += 1;
+		tempMask = tempMask << 1;
+	}
+	// теперь tempMask == 00...0011..11, где bitWidth единиц
+
+	pMem[MemLen - 1] = pMem[MemLen - 1] & tempMask;
+	// 11...11(~x)(~x)...(~x)(~x) & 00...0011...11 == 00...00(~x)(~x)...(~x)(~x)
+
+	return *this;
 }
 
 // ввод/вывод

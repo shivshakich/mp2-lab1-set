@@ -7,15 +7,15 @@
 
 #include "tbitfield.h"
 
+static const int BITS_IN_TELEM = 8 * sizeof(TELEM);
+
 TBitField::TBitField(int len)
 {
 	if (len <= 0)
 		throw out_of_range("constructor TBitField, len <= 0");
 
-	int bitsInTelem = 8 * sizeof(TELEM);
-
 	BitLen = len;
-	MemLen = BitLen / bitsInTelem + ((BitLen % bitsInTelem) > 0);
+	MemLen = BitLen / BITS_IN_TELEM + ((BitLen % BITS_IN_TELEM) > 0);
 	pMem = new TELEM[MemLen];
 
 	for (int i = 0; i < MemLen; ++i)
@@ -39,12 +39,28 @@ TBitField::~TBitField()
 
 int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n
 {
-	return 0;
+	int a = BITS_IN_TELEM;
+	int bitWidth = 0;
+
+	while (a > 0) {
+		a >> 1;
+		++bitWidth;
+	}
+	// число BITS_IN_TELEM занимает bitWidth битов в памяти
+
+	return n >> (bitWidth - 1);			// то же самое, что и int(n / BITS_IN_TELEM)
 }
 
 TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
 {
-	return 0;
+	TELEM memElem = pMem[GetMemIndex(n)];
+	int elemIndex = n % BITS_IN_TELEM;
+
+	TELEM bitMask = 1;
+	bitMask << elemIndex;
+
+	// bitMask = 000...010...000
+	return bitMask;
 }
 
 // доступ к битам битового поля

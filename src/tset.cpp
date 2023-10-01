@@ -7,37 +7,68 @@
 
 #include "tset.h"
 
-TSet::TSet(int mp) : BitField(-1)
+//////////////////////////////////////////////////////////////////////////////
+//  ВАЖНО!  TSet будет хранить только числа от 0 до (MaxPower - 1)
+//          Пустое множество: MaxPower = 0, создаcтся битовое поле длины 1
+//////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////
+// 1)   проверить, что возвращает оператор преобразования типа
+//////////////////////////////////////////////////////////////////////////////
+
+TSet::TSet(int mp) : BitField(mp == 0 ? 1 : mp)
 {
+    // если mp < 0, то исключение вызовется в конструкторе TBitField(int), которое примет значение mp
+    // если mp == 0, то TBitField(int) примет 1, и исключение в нём не сработает
+    // если mp > 0, то конструктор сработает без вызова исключений
+
+    if (mp < 0)
+        throw out_of_range("EXCEPTION: constructor TSet(int mp), mp < 0");
+
+    MaxPower = mp;
 }
 
 // конструктор копирования
-TSet::TSet(const TSet &s) : BitField(-1)
+TSet::TSet(const TSet &s) : BitField(s.BitField)
 {
+    MaxPower = s.MaxPower;
 }
 
 // конструктор преобразования типа
-TSet::TSet(const TBitField &bf) : BitField(-1)
+TSet::TSet(const TBitField &bf) : BitField(bf)
 {
+    MaxPower = bf.GetLength();
 }
 
 TSet::operator TBitField()
 {
-    return*this;
+    // возвращает копию или ссылку ?
+    return BitField;
 }
 
 int TSet::GetMaxPower(void) const // получить макс. к-во эл-тов
 {
-    return 0;
+    return MaxPower;
 }
 
 int TSet::IsMember(const int Elem) const // элемент множества?
 {
+    int result = 0;
+
+    // нужно ли тут MaxPower == 0 ?
+    if (Elem < 0 || Elem > MaxPower - 1 || MaxPower == 0)
+        result = 0;
+    else
+        result = BitField.GetBit(Elem);
+
     return 0;
 }
 
 void TSet::InsElem(const int Elem) // включение элемента множества
 {
+    if (Elem < 0)
+        throw out_of_range("EXCEPTION: TSet::InsElem, Elem < 0");
+    else if (Elem <= MaxPower - 1)
 }
 
 void TSet::DelElem(const int Elem) // исключение элемента множества

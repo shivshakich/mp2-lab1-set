@@ -8,13 +8,13 @@
 #include "tbitfield.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-// TODO:																								//
-// 1)	В последнем элементе pMem неиспользуемые ячейки обязаны иметь значение 0 ?						//
-// 2)	метод GetMemIndex должен проверять n на его вхождение в область определения метода ?			//
-//		Если да, то нужно переписать operator>>,														//
-//		если нет, то почему GetMemIndex - метод, а дружественная функция, например						//
-// 3)	реализация operator& и operator|																//
-// 4)	Должны ли operator&, operator| работать с битовыми полями разных длин?							//
+// TODO:																								
+// 1)	В последнем элементе pMem неиспользуемые ячейки обязаны иметь значение 0 ?						
+// 2)	метод GetMemIndex должен проверять n на его вхождение в область определения метода ?			
+//		Если да, то нужно переписать operator>>,														
+//		если нет, то почему GetMemIndex - метод, а дружественная функция, например						
+// 3)	реализация operator& и operator|																
+// 4)	Должны ли operator&, operator| работать с битовыми полями разных длин?							
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static const int BITS_IN_TELEM = 8 * sizeof(TELEM);
@@ -22,7 +22,7 @@ static const int BITS_IN_TELEM = 8 * sizeof(TELEM);
 TBitField::TBitField(int len)
 {
 	if (len <= 0)
-		throw out_of_range("constructor TBitField, len <= 0");
+		throw out_of_range("EXCEPTION: constructor TBitField, len <= 0");
 
 	BitLen = len;
 	MemLen = BitLen / BITS_IN_TELEM + ((BitLen % BITS_IN_TELEM) > 0);

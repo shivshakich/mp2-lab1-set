@@ -154,36 +154,27 @@ int TBitField::operator==(const TBitField &bf) const // сравнение
 {
 	int result = 0;
 
-	if (this == &bf)
-		result = 1;
-	else if (BitLen == bf.BitLen) {
+	if (BitLen == bf.BitLen) {
 		result = 1;
 
-		for (int i = 0; i < MemLen - 1; ++i)
+		for (int i = 0; i < MemLen - 1; ++i) 
 			if (pMem[i] != bf.pMem[i]) {
 				result = 0;
 				break;
 			}
 
 		if (result == 1) {
-			TELEM number1 = pMem[MemLen - 1], number2 = bf.pMem[MemLen - 1];
-			
-			// сравниваем биты от 0 до (BitLen % BITS_IN_TELEM) чисел number1, number2
-			// number1 = aa...aaxxx...x		||	нужно сравнить xxx...x и yyy...y
-			// number2 = bb...bbyyy...y		||	для этого нужно найти их битовую длину, которая одинаковая у них
-
-			// int bitWidth = BitLen % BITS_IN_TELEM
-			// BitLen == B_I_T * (MemLen - 1) + (BitLen % B_I_T)
+			// bitWidth - количество бит занятых в последнем TELEM
+			// 0 < bitWidth <= BITS_IN_TELEM
 			int bitWidth = BitLen - BITS_IN_TELEM * (MemLen - 1);
-			// bitWidth - битовая ширина xx...xx и yy...yy
 
-			number1 = number1 << (BITS_IN_TELEM - bitWidth);
-			number2 = number2 << (BITS_IN_TELEM - bitWidth);
-			// теперь	number1 == x...x0...0
-			//			number2 == y...y0...0
+			TELEM number1 = pMem[MemLen - 1], number2 = pMem[MemLen - 1];
 
-			if (number1 != number2)
-				result = 0;
+			TELEM bitMask = 1;
+			bitMask = bitMask << bitWidth;	// bitMask занимает (bitWidth + 1) битов, единица находится на bitWidth позиции
+			bitMask -= 1;					// теперь bitMask в ширину bitWidth битов, с 0 по (bitWidth - 1) - единицы
+
+			result = (number1 & bitMask) == (number2 & bitMask);
 		}
 	}
 

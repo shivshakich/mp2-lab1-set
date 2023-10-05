@@ -230,74 +230,87 @@ TBitField TBitField::operator~(void) // отрицание
 istream &operator>>(istream &istr, TBitField &bf) // ввод
 {
 	char* s;
+	int sLen;
 	TELEM number;
-	int digit;
+	TELEM digit;
+	int lim;		// количество символов, что пойдёт в элементы pMem с 0 до предпоследнего 
 
-	istr >> s;
+	istr >> s;	// ввод символов
+	sLen = strlen(s);
 
-	int sLen = strlen(s);
+	for (int i = 0; i < sLen; ++i)	//проверка на исключение
+		if (s[i] != '0' && s[i] != '1')
+			throw "EXCEPTION: TBitField::operator>>, wrong input flow of chars";
 
-	delete[] bf.pMem;
-	bf.MemLen = 0;
+	delete[] bf.pMem;	// освобождаем память от текущего pMem; если pMem == nullptr, то ошибки не будет
+	bf.MemLen = 0;		
 	bf.BitLen = 0;
 
-	int temp = bf.GetMemIndex(sLen);
-	// хоть метод и применяется к объекту bf, метод не работает с полями объекта
-	bf.pMem = new TELEM[temp];
-	bf.MemLen = temp;
-	bf.BitLen = sLen;
+	bf.MemLen = bf.GetMemIndex(sLen);	// получаем MemLen
+	bf.pMem = new TELEM[bf.MemLen];		// выделяем память для pMem
+	bf.BitLen = sLen;					// присваиваем значение для BitLen
 
-	// обработка исключений
-	for (int i = 0; i < sLen; ++i)
-		if (s[i] != '0' && s[i] != '1')
-			throw "Поток ввода получил неправильную строку символов";
+	lim = BITS_IN_TELEM * (bf.MemLen - 1);	// получаем значение для lim
 
-	// заполнение элементов pMem от 0 до (MemLen - 1) - 1
-	for (int i = 0; i < bf.MemLen - 1; ++i) {
-		number = 0;
+	for (int i = 0; i < lim; ++i) {	// пробегаем символы, которые пойдут в элементы pMem с номерами от 0 до предпоследнего
+		TELEM number = 0;
 
-		for (int j = 0; j < BITS_IN_TELEM; ++j) {
-			digit = s[i * BITS_IN_TELEM + j] - '0';
+		for (int j = 0; j < BITS_IN_TELEM; ++j) {	// формируем значение для pMem[i]
+			digit = TELEM(s[i * BITS_IN_TELEM + j] - '0');	// digit - текущий символ s
 
-			number = number + digit;
 			number = number << 1;
+			number += digit;			// записываем digit в number
 		}
 
-		bf.pMem[i] = number;
+		bf.pMem[i] = number;			// записываем значение для pMem[i]
 	}
 
-	// предыдущий temp и текущий не имеют между собой ничего общего
-	temp = BITS_IN_TELEM * (bf.MemLen - 1);
 	number = 0;
-	for (int i = 0; i < (bf.BitLen - temp); ++i) {
-		digit = s[temp + i] - '0';
-		number = number + digit;
-		number = number << 1;
+	for (int i = 0; i < bf.BitLen - lim; ++i) {	// пробегаем оставшиеся символы
+		digit = TELEM(s[BITS_IN_TELEM * (bf.MemLen - 1) + i] - '0'); // digit - текущий символ s
+		
+		number << 1;
+		number += digit;
 	}
-	bf.pMem[bf.MemLen - 1] = number;
+	bf.pMem[bf.MemLen - 1] = number;	// записываем значение для pMem[MemLen - 1]
+
+	delete[] s;	// освобождение памяти от динамического массива s
 
 	return istr;
 }
 
 ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
 {
-	char* s = new char[bf.BitLen];
-	for (int i = 0; i < bf.MemLen - 1; ++i) {
-		TELEM number = bf.pMem[i];
+	char* s = new char[bf.BitLen];	// создаём s, выделяем для него память
+	TELEM number, digit;
+	int lim;
 
-		for (int j = 0; j < BITS_IN_TELEM; ++j) {
-			s[i * BITS_IN_TELEM + j] = '0' + (number & 1);
+	for (int i = 0; i < bf.MemLen - 1; ++i) {	// пробегаем элементы pMem от 0 до предпоследнего 
+		number = bf.pMem[i];
+
+		for (int j = 0; j < BITS_IN_TELEM; ++j) {	// пробегаем биты pMem[i] справа налево
+			digit = TELEM(1) & number;
+
+			s[i * BITS_IN_TELEM + j] = (digit != 0) + '0';
+
 			number = number >> 1;
 		}
 	}
 
-	TELEM number = bf.pMem[bf.MemLen - 1];
-	for (int i = BITS_IN_TELEM * (bf.MemLen - 1); i < bf.BitLen; ++i) {
-		s[i] = '0' + (number & 1);
+	lim = BITS_IN_TELEM * (bf.MemLen - 1);
+
+	number = bf.pMem[bf.MemLen - 1];
+	for (int i = 0; i < bf.BitLen - lim; ++i) {	// пробегаем BitLen - lim битов в pMem[MemLen - 1]
+		digit = TELEM(1) & number;
+
+		s[lim + i] = (digit != 0) + '0';
+
 		number = number >> 1;
 	}
 
-	ostr << s;
+	cout << s;	// вывод s
+
+	delete[] s;	// освобождение памяти от s
 
 	return ostr;
 }

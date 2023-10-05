@@ -238,7 +238,10 @@ istream &operator>>(istream &istr, TBitField &bf) // ввод
 	istr >> s;	// ввод символов
 	sLen = strlen(s);
 
-	for (int i = 0; i < sLen; ++i)	//проверка на исключение
+	if (sLen <= 0)	// проверка на исключение
+		throw "EXCEPTION: TBitField::operator>>, length of s <= 0"
+
+	for (int i = 0; i < sLen; ++i)	// проверка на исключение
 		if (s[i] != '0' && s[i] != '1')
 			throw "EXCEPTION: TBitField::operator>>, wrong input flow of chars";
 

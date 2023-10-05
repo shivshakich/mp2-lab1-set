@@ -217,27 +217,12 @@ TBitField TBitField::operator&(const TBitField &bf) // операция "и"
 
 TBitField TBitField::operator~(void) // отрицание
 {
-	for (int i = 0; i < MemLen; ++i)
-		pMem[i] = ~pMem[i];
+	TBitField result(*this);
 
-	// pMem[MemLen - 1] == 00...00xx...xx		- это последний элемент pMem
-	// 00...00xx...xx	==>		11...11(~x)(~x)...(~x)(~x)		после цикла for
+	for (int i = 0; i < result.BitLen; ++i)
+		result.pMem[i] = ~(result.pMem[i]);
 
-	int bitWidth = BitLen - BITS_IN_TELEM * (MemLen - 1);
-	// int bitWidth = BitLen % BITS_IN_TELEM;
-	// bitWidth - количество занятых битов в последнем элементе pMem
-
-	TELEM tempMask = 0;
-	for (int i = 0; i < bitWidth; ++i) {
-		tempMask += 1;
-		tempMask = tempMask << 1;
-	}
-	// теперь tempMask == 00...0011..11, где bitWidth единиц
-
-	pMem[MemLen - 1] = pMem[MemLen - 1] & tempMask;
-	// 11...11(~x)(~x)...(~x)(~x) & 00...0011...11 == 00...00(~x)(~x)...(~x)(~x)
-
-	return *this;
+	return result;
 }
 
 // ввод/вывод

@@ -191,12 +191,28 @@ int TBitField::operator!=(const TBitField &bf) const // сравнение
 
 TBitField TBitField::operator|(const TBitField &bf) // операция "или"
 {
-	return*this;
+	if (BitLen != bf.BitLen)
+		throw "EXCEPTION: TBitField::operator|, BitLen != bf.BitLen";
+
+	TBitField result(*this);
+
+	for (int i = 0; i < result.MemLen; ++i)
+		result.pMem[i] = result.pMem[i] | bf.pMem[i];
+
+	return result;	// создастся копия
 }
 
 TBitField TBitField::operator&(const TBitField &bf) // операция "и"
 {
-	return* this;
+	if (BitLen != bf.BitLen)
+		throw "EXCEPTION: TBitField::operator& BitLen != bf.BitLen";
+
+	TBitField result(*this);
+
+	for (int i = 0; i < result.BitLen; ++i)
+		result.pMem[i] = result.pMem[i] & bf.pMem[i];
+
+	return result;	// создастся копия 
 }
 
 TBitField TBitField::operator~(void) // отрицание

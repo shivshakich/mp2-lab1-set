@@ -36,7 +36,7 @@ TBitField::TBitField(int len)
 	int temp = len / BITS_IN_TELEM;
 
 	BitLen = len;
-	MemLen = temp + (len != temp * BITS_IN_TELEM );
+	MemLen = temp + (len != temp * BITS_IN_TELEM);
 	pMem = new TELEM[MemLen];
 
 	for (int i = 0; i < MemLen; ++i)
@@ -56,6 +56,9 @@ TBitField::TBitField(const TBitField &bf) // конструктор копиро
 TBitField::~TBitField()
 {
 	delete[] pMem;
+	pMem = nullptr;
+	BitLen = 0;
+	MemLen = 0;
 }
 
 int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n

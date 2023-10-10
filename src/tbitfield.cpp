@@ -242,7 +242,7 @@ istream &operator>>(istream &istr, TBitField &bf) // ввод
 	sLen = strlen(s);
 
 	if (sLen <= 0)	// проверка на исключение
-		throw "EXCEPTION: TBitField::operator>>, length of s <= 0"
+		throw "EXCEPTION: TBitField::operator>>, length of s <= 0";
 
 	for (int i = 0; i < sLen; ++i)	// проверка на исключение
 		if (s[i] != '0' && s[i] != '1')

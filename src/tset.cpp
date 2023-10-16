@@ -66,9 +66,7 @@ int TSet::IsMember(const int Elem) const // элемент множества?
 
 void TSet::InsElem(const int Elem) // включение элемента множества
 {
-    if (Elem < 0)
-        throw out_of_range("EXCEPTION: TSet::InsElem, Elem < 0");
-    else if (Elem <= MaxPower - 1)
+    return;
 }
 
 void TSet::DelElem(const int Elem) // исключение элемента множества

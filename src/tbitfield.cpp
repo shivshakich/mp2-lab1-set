@@ -373,6 +373,8 @@ ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
 		bits = bits >> 1;
 		ostr << c;
 	}
+
+	return ostr;
 }
 
 // TBitField bf1: MemLen = 4, BitLen = 15

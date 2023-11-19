@@ -187,7 +187,7 @@ int TBitField::operator==(const TBitField &bf) const // сравнение
 			// BitLen == B_I_T * (MemLen - 1) + (BitLen % B_I_T)
 			// bitWidth - битовая ширина xx...xx и yy...yy, кол-во бит в xx...xx и  yy...yy
 
-			TELEM number1 = pMem[MemLen - 1], number2 = pMem[MemLen - 1];
+			TELEM number1 = pMem[MemLen - 1], number2 = bf.pMem[MemLen - 1];
 			int bitWidth = BitLen - BITS_IN_TELEM * (MemLen - 1);
 			int shift = BITS_IN_TELEM - bitWidth;
 
@@ -195,7 +195,7 @@ int TBitField::operator==(const TBitField &bf) const // сравнение
 			number2 = number2 << shift;
 			// теперь number1 = xx...xx00..00, number2 = yy...yy00...00
 
-			result = number1 == number2;
+			result = (number1 == number2);
 		}
 	}
 
@@ -368,7 +368,8 @@ ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
 
 	TELEM bits = bf.pMem[temp];
 
-	for (int j = 0, temp = bf.BitLen - BITS_IN_TELEM * temp; j < temp; ++j) {
+	temp = bf.BitLen - BITS_IN_TELEM * temp;
+	for (int j = 0; j < temp; ++j) {
 		c = bits & TELEM(1);
 		bits = bits >> 1;
 		ostr << c;

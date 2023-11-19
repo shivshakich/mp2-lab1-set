@@ -212,14 +212,11 @@ int TBitField::operator!=(const TBitField &bf) const // сравнение
 
 TBitField TBitField::operator|(const TBitField &bf) // операция "или"
 {
-	// для result вызов конструктора копирования TBitField(const TBitField&), принимающее битовое поле наибольшей длины
-	TBitField result = BitLen > bf.BitLen ? *this : bf;
-	// выделяем динамическую память
-	const TBitField* minBitField;	// указатель, указывающий на битовое поле наименьшей длины
-	const TBitField* maxBitField;	// аналогично, но для битового поля наибольшей длины
-	int temp;
+	const TBitField* maxBitField;					// указатель на объект-битовое_поле максимальной длины 
+	const TBitField* minBitField;					// указатель на объект-битовое_поле минимальной длины 
 
-	if (BitLen < bf.BitLen) {
+	// находим минимальное и максимальное по длине битовые поля 
+	if (this->BitLen < bf.BitLen) {
 		minBitField = this;
 		maxBitField = &bf;
 	}
@@ -228,31 +225,76 @@ TBitField TBitField::operator|(const TBitField &bf) // операция "или"
 		maxBitField = this;
 	}
 
-	temp = minBitField->MemLen;
-	for (int i = 0; i < temp - 1; ++i) {	// применяем operator| для элементов pMem от 0 до minMemLen - 2
+	TBitField result(*maxBitField);
+
+	int temp = minBitField->MemLen - 1;
+	for (int i = 0; i < temp; ++i) {
 		result.pMem[i] = minBitField->pMem[i] | maxBitField->pMem[i];
 	}
 
-	// ДОПИСАТЬ!!!
+	int bitWidth = minBitField->BitLen - BITS_IN_TELEM * temp;	// ширина последнего элемента minBitField->pMem
+	int shift = BITS_IN_TELEM - bitWidth;
+	TELEM bits = ((minBitField->pMem[temp]) << shift) >> shift;
+	result.pMem[temp] = bits | maxBitField->pMem[temp];
 
-	// переназначаем указатели, чтобы не удалялись массивы pMem у *this и bf
-	// minBitField = nullptr;	
-	// maxBitField = nullptr;
-	// Нет нужды, так как minBitField и maxBitField - это не объекты, а указатели на них
+	// a | 0 == a, поэтому дальше не преобразуем элементы result.pMem
 
-	// освобождаем память от динамических данных
-	delete minBitField;
+	// не знаю, как работает delete 
+	maxBitField = nullptr;
+	minBitField = nullptr;
 	delete maxBitField;
+	delete minBitField;
+
+	return result;
 }
 
 TBitField TBitField::operator&(const TBitField &bf) // операция "и"
 {
+	const TBitField* maxBitField;					// указатель на объект-битовое_поле максимальной длины 
+	const TBitField* minBitField;					// указатель на объект-битовое_поле минимальной длины 
 
+	// находим минимальное и максимальное по длине битовые поля 
+	if (this->BitLen < bf.BitLen) {		
+		minBitField = this;
+		maxBitField = &bf;
+	}
+	else {
+		minBitField = &bf;
+		maxBitField = this;
+	}
+
+	TBitField result(maxBitField->BitLen);	
+
+	int temp = minBitField->MemLen - 1;
+	for (int i = 0; i < temp; ++i) {
+		result.pMem[i] = minBitField->pMem[i] & maxBitField->pMem[i];
+	}
+	
+	int bitWidth = minBitField->BitLen - BITS_IN_TELEM * temp;	// ширина последнего элемента minBitField->pMem
+	int shift = BITS_IN_TELEM - bitWidth;
+	TELEM bits = ((minBitField->pMem[temp]) << shift) >> shift;
+	result.pMem[temp] = bits & maxBitField->pMem[temp];
+
+	// все остальные элементы result.pMem и так равны 0
+
+	// не знаю, как работает delete 
+	maxBitField = nullptr;
+	minBitField = nullptr;
+	delete maxBitField;
+	delete minBitField;
+
+	return result;
 }
 
 TBitField TBitField::operator~(void) // отрицание
 {
+	TBitField res(*this);
 
+	int temp = res.MemLen;
+	for (int i = 0; i < temp; ++i)
+		res.pMem[i] = ~(res.pMem[i]);
+
+	return res;
 }
 
 // ввод/вывод

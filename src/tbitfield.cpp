@@ -301,12 +301,49 @@ TBitField TBitField::operator~(void) // отрицание
 
 istream &operator>>(istream &istr, TBitField &bf) // ввод
 {
-	
+	char c;							// переменная, принимающая входные значения
+	TELEM bits;						// переменная, в которую будут записываться c
+	int index_bits;					// кол-во занятых ячеек в bits
+
+	TBitField temp(bf.BitLen);		// куда будут записываться c
+	int bitLen;						// сколько раз переназначалась c
+	int memLen_temp;				// скольок раз элементам temp.pMem присваивалось значение bits
+
+	istr >> c;
+
+	if (c != '0' && c != '1')
+		throw "TBitField::operator>>, first incoming symbol must be '0' or '1'";
+
+	bits = TELEM(c - '0');
+	index_bits = 1;
+	bitLen = 1;
+
+	const int BF_BITLEN = bf.BitLen;
+	while (bitLen < BF_BITLEN);
 }
 
 ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
 {
-	
+	TELEM c;
+
+	int temp = bf.MemLen - 1;
+	for (int i = 0; i < temp; ++i) {
+		TELEM bits = bf.pMem[i];
+
+		for (int j = 0; j < BITS_IN_TELEM; ++j) {
+			c = bits & TELEM(1);
+			bits = bits >> 1;
+			ostr << c;
+		}
+	}
+
+	TELEM bits = bf.pMem[temp];
+
+	for (int j = 0, temp = bf.BitLen - BITS_IN_TELEM * temp; j < temp; ++j) {
+		c = bits & TELEM(1);
+		bits = bits >> 1;
+		ostr << c;
+	}
 }
 
 // TBitField bf1: MemLen = 4, BitLen = 15

@@ -317,9 +317,38 @@ istream &operator>>(istream &istr, TBitField &bf) // ввод
 	bits = TELEM(c - '0');
 	index_bits = 1;
 	bitLen = 1;
+	memLen_temp = 0;
 
 	const int BF_BITLEN = bf.BitLen;
-	while (bitLen < BF_BITLEN);
+	while (bitLen < BF_BITLEN) 
+	{
+		istr >> c;
+
+		if (c == ' ' || c == '\n' || c == EOF) {
+			temp.pMem[memLen_temp++] = bits;
+			break;
+		}
+		else if (c != '0' && c != '1')
+			throw "TBitField::operator>>, wrong incoming symbol";
+
+		bits = (bits << 1) + TELEM(c - '0');
+		++index_bits;
+		++bitLen;
+
+		if (index_bits == BITS_IN_TELEM) {
+			temp.pMem[memLen_temp++] = bits;
+			bits = 0;
+			index_bits = 0;
+		}
+	}
+
+	if (bitLen != BF_BITLEN) 
+		bf = TBitField(bitLen);
+
+	for (int i = 0; i < temp.MemLen; ++i)
+		bf.pMem[i] = temp.pMem[i];
+
+	return istr;
 }
 
 ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
